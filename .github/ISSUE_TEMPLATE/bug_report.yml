@@ -1,0 +1,80 @@
+name: "👾 Bug / GAME OVER"
+description: Algo não funciona como deveria no ULTRA RETRO PI
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **GAME OVER?** Conte o que aconteceu — quanto mais detalhe, mais rápido sai o CONTINUE.
+        Antes de abrir, dê uma olhada no [README](https://github.com/luisxl15/ULTRA-RETRO-PI---EMUELEC-FOR-ORANGE-PI-PC-PLUS#readme) (primeiro boot, overclock, ROMs no Windows).
+  - type: dropdown
+    id: version
+    attributes:
+      label: Versão do ULTRA RETRO PI
+      description: Aparece no rodapé do menu (aperte START).
+      options:
+        - V1.0
+        - Compilei do código (outra)
+    validations:
+      required: true
+  - type: dropdown
+    id: board
+    attributes:
+      label: Placa
+      options:
+        - Orange Pi PC Plus (com eMMC)
+        - Outra (diga qual na descrição)
+    validations:
+      required: true
+  - type: dropdown
+    id: overclock
+    attributes:
+      label: Perfil de overclock
+      description: Configurações do sistema → Overclock.
+      options:
+        - 1,296 GHz (padrão)
+        - 1,008 GHz
+        - 1,2 GHz
+        - 1,344 GHz
+        - 1,44 GHz (extremo)
+        - 1,536 GHz (extremo)
+        - Não sei
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Sistema / núcleo / jogo
+      description: "Se o problema é num emulador, diga qual (ex.: SNES → snes9x2010 → Super Mario World)."
+      placeholder: "SNES / snes9x2010 / Super Mario World"
+  - type: textarea
+    id: what
+    attributes:
+      label: O que aconteceu?
+      description: E o que você esperava que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Liguei a placa
+        2. Entrei em ...
+        3. Apareceu ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (opcional)
+      description: |
+        Com acesso por SSH, rode `emueleclogs.sh` e anexe o `.zip` que ele cria em `/emuelec/logs/`.
+        Ou cole aqui o trecho do `/emuelec/logs/emuelec.log`.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: Testei no perfil de clock padrão (1,296 GHz) para descartar o overclock.
+        - label: Procurei nas issues abertas e esse problema ainda não foi relatado.

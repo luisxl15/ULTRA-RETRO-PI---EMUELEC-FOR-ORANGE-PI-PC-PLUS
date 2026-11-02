@@ -1,0 +1,24 @@
+name: "⭐ Ideia / POWER-UP"
+description: Sugira um recurso, sistema ou melhoria para o ULTRA RETRO PI
+title: "[IDEIA] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **NEW CHALLENGER!** Toda ideia é bem-vinda. Lembre que o H3 é um Cortex-A7 com Mali-400 e 1 GB de RAM — sistemas 3D pesados (Dreamcast, PSP, N64) foram tirados por isso.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Qual é a ideia?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Por que seria útil?
+  - type: textarea
+    id: extra
+    attributes:
+      label: Referências (opcional)
+      description: Links, prints, outro projeto que já faz isso…
