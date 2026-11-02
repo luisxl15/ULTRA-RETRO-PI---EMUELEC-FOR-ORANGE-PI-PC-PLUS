@@ -1,0 +1,19 @@
+sunxi-mci: don't oops on reboot when the eMMC slot has no card
+
+--- a/drivers/mmc/host/sunxi-mci.c	2026-11-02 12:35:44.721546508 -0300
++++ b/drivers/mmc/host/sunxi-mci.c	2026-11-02 12:35:44.807324019 -0300
+@@ -3448,6 +3448,14 @@
+ 		goto out;
+ 	}
+ 
++	/* no card was detected on this slot (e.g. the eMMC slot is enabled in the fex
++	 * but nothing answered): mmc_send_status() below would hit BUG_ON(!card) and
++	 * turn every reboot/poweroff into a kernel oops */
++	if (mmc->card == NULL) {
++		SMC_MSG(smc_host, "%s: no card on this slot, nothing to shut down\n", __FUNCTION__);
++		goto out;
++	}
++
+     SMC_MSG(smc_host,"try to disable cache\n");
+     err = mmc_cache_ctrl(mmc, 0);
+     if (err){
