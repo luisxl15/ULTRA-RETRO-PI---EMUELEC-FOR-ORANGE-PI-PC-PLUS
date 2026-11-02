@@ -145,6 +145,11 @@ show_splash.sh intro
 # Just make sure all the subshells are finished before starting front-end
 wait
 
+# GPIO controls, if turned on in the menu (Setup script or SYSTEM SETTINGS > GPIO CONTROLS)
+if [ -f /usr/lib/systemd/system/gpio.service ] && [ "$(get_ee_setting ee_gpio.enabled)" == "1" ]; then
+	systemctl start gpio &
+fi
+
 # What to start at boot?
 DEFE=$(get_ee_setting ee_boot)
 

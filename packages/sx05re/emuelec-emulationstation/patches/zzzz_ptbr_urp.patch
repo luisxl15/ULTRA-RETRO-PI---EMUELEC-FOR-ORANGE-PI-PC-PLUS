@@ -1,0 +1,15 @@
+--- a/locale/lang/pt_BR/LC_MESSAGES/emulationstation2.po	2026-11-02 14:00:58.350774022 -0300
++++ b/locale/lang/pt_BR/LC_MESSAGES/emulationstation2.po	2026-11-02 14:00:58.365017301 -0300
+@@ -1117,6 +1117,12 @@
+ msgid "Cpu number"
+ msgstr "Número de núcleos do processador"
+ 
++msgid "Cpu frequency"
++msgstr "Frequência atual do processador"
++
++msgid "GPIO CONTROLS"
++msgstr "CONTROLES NO GPIO"
++
+ msgid "Cpu max frequency"
+ msgstr "Frequência máxima do processador"
+ 

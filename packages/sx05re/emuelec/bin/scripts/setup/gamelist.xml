@@ -117,4 +117,12 @@
 		<genre>script</genre>
 		<image>./downloaded_images/scummvm.png</image>
 	</game>
+	<game>
+		<path>./gpio_controls.sh</path>
+		<name>GPIO Controls (Ativar/Desativar)</name>
+		<desc>Liga ou desliga os controles ligados nos pinos GPIO da placa. A escolha vale para os proximos boots.</desc>
+		<developer>Ultra Retro Pi</developer>
+		<publisher>Ultra Retro Pi</publisher>
+		<genre>script</genre>
+	</game>
 </gameList>

@@ -1,0 +1,30 @@
+--- a/es-app/src/guis/GuiMenu.cpp	2026-11-02 14:00:58.297155267 -0300
++++ b/es-app/src/guis/GuiMenu.cpp	2026-11-02 14:00:58.321249820 -0300
+@@ -2050,6 +2050,27 @@
+ 		});
+ 	}
+ 
++#ifdef _ENABLEEMUELEC
++	// Ultra Retro Pi: GPIO controls (python controller from the gpio package), only where it ships.
++	// Same ee_gpio.enabled that emuelec_autostart.sh reads at boot.
++	if (Utils::FileSystem::exists("/usr/lib/systemd/system/gpio.service"))
++	{
++		auto gpio_enabled = std::make_shared<SwitchComponent>(window);
++		gpio_enabled->setState(SystemConf::getInstance()->get("ee_gpio.enabled") == "1");
++		s->addWithLabel(_("GPIO CONTROLS"), gpio_enabled);
++		s->addSaveFunc([gpio_enabled]
++		{
++			bool on = gpio_enabled->getState();
++			if (on != (SystemConf::getInstance()->get("ee_gpio.enabled") == "1"))
++			{
++				SystemConf::getInstance()->set("ee_gpio.enabled", on ? "1" : "0");
++				SystemConf::getInstance()->saveSystemConf();
++				runSystemCommand(on ? "systemctl start gpio" : "systemctl stop gpio", "", nullptr);
++			}
++		});
++	}
++#endif
++
+ #ifdef BATOCERA
+ 	s->addGroup(_("STORAGE"));
+ 

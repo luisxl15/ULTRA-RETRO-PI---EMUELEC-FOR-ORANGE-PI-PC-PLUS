@@ -698,6 +698,7 @@ serial_unique       = 0
 ;lpo_use_apclk: ""- not use, "losc_out"- a23/33/H3, "ac10032k1"、"ac10032k2"、"ac10032k3"- a80
 ;--------------------------------------------------------------------------------
 [module_para]
+module_num         = 8
 module_power0       = "vcc-wifi-33"
 module_power0_vol   = 0
 module_power1       =

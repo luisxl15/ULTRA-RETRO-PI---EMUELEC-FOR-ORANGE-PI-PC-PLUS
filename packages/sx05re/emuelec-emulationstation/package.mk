@@ -158,6 +158,21 @@ if [ "${PROJECT}" == "H3" ]; then
 		xmlstarlet ed -L -P -d "/systemList/system[name='${dissystem}']" ${CORESFILE}
 	done
 
+	# SAFE SHUTDOWN in the system carousel, right after Setup (scripts/shutdown is in emuelec,
+	# the art in the ComicBook overlay)
+	xmlstarlet ed -L -P -a "/systemList/system[name='setup']" -t elem -n systemTMP -v "" \
+		-s "//systemTMP" -t elem -n name -v "shutdown" \
+		-s "//systemTMP" -t elem -n fullname -v "Safe Shutdown" \
+		-s "//systemTMP" -t elem -n manufacturer -v "Ultra Retro Pi" \
+		-s "//systemTMP" -t elem -n release -v "2026" \
+		-s "//systemTMP" -t elem -n hardware -v "system" \
+		-s "//systemTMP" -t elem -n path -v "/usr/bin/scripts/shutdown" \
+		-s "//systemTMP" -t elem -n extension -v ".sh" \
+		-s "//systemTMP" -t elem -n command -v "/usr/bin/bash %ROM%" \
+		-s "//systemTMP" -t elem -n platform -v "ignore" \
+		-s "//systemTMP" -t elem -n theme -v "shutdown" \
+		-r "//systemTMP" -v "system" ${CORESFILE}
+
 	# lighter default cores for the Cortex-A7 (the others stay selectable)
 	for syscore in gba:gpsp snes:snes9x2010 nes:fceumm megadrive:picodrive genesis:picodrive segacd:picodrive; do
 		xmlstarlet ed -L -P -d "/systemList/system[name='${syscore%%:*}']//core/@default" \

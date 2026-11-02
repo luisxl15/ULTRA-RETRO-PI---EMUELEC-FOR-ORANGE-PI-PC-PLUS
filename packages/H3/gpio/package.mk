@@ -19,7 +19,9 @@ pre_make_target() {
 }
 
 makeinstall_target() {
-  python3 setup.py install --root=$INSTALL --prefix=/usr
+  # tz_gpio_controller.py is Python 2 and uinput/evdev are built for Python 2 (toolchain
+  # "python" is 2.7), so pyA20 has to be too; with python3 the controller can't import it
+  python setup.py install --root=$INSTALL --prefix=/usr
   mkdir -p $INSTALL/usr/config/
   cp -rf $PKG_DIR/config/* $INSTALL/usr/config/
 }

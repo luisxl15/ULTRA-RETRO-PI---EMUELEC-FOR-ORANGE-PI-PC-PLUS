@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<gameList>
+	<game>
+		<path>./safe_shutdown.sh</path>
+		<name>DESLIGAR COM SEGURANÇA</name>
+		<desc>Grava tudo no cartão e desliga a ULTRA RETRO PI com segurança. Espere a tela apagar antes de tirar da tomada.</desc>
+		<developer>Ultra Retro Pi</developer>
+		<publisher>Ultra Retro Pi</publisher>
+		<genre>script</genre>
+		<image>./safe_shutdown.png</image>
+	</game>
+</gameList>

@@ -4,7 +4,8 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/python /storage/.config/gpio/tz_gpio_controller.py  > /storage/.config/gpio/tz_gpio_controller.log
+# Python 2 controller (/usr/bin/python is 3.7 here); prefer the user's copy in /storage
+ExecStart=/bin/sh -c 'f=/storage/.config/gpio/tz_gpio_controller.py; [ -f "$f" ] || f=/usr/config/gpio/tz_gpio_controller.py; exec /usr/bin/python2 "$f"'
 
 [Install]
 WantedBy=multi-user.target
