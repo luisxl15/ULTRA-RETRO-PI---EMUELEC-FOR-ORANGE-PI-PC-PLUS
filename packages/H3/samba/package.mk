@@ -132,6 +132,8 @@ post_makeinstall_target() {
     cp $PKG_DIR/scripts/samba-config $INSTALL/usr/lib/samba
     cp $PKG_DIR/scripts/smbd-config $INSTALL/usr/lib/samba
     cp $PKG_DIR/scripts/samba-autoshare $INSTALL/usr/lib/samba
+    # the scripts are 0644 in git; samba-config.service runs samba-config directly
+    chmod 0755 $INSTALL/usr/lib/samba/samba-config $INSTALL/usr/lib/samba/smbd-config $INSTALL/usr/lib/samba/samba-autoshare
 
   if find_file_path config/smb.conf; then
     mkdir -p $INSTALL/etc/samba
