@@ -25,4 +25,17 @@ makeinstall_target() {
 
   # every system gets the logo and character in the grid view too
   find $THEME_DIR -name theme.xml -exec sed -i 's|<view name="basic, detailed, video">|<view name="basic, detailed, video, grid">|' {} +
+
+  # 16-bit console popping out of the bottom-right corner of the system view (art from
+  # tools/ultra-retro-pi/mk-console-art.py; zIndex 11 = over the page border, under the carousel)
+  for art in $THEME_DIR/*/art/console.png; do
+    sed -i '/<view name="system">/a\
+		<image name="console" extra="true">\
+			<path>./art/console.png</path>\
+			<pos>1 1</pos>\
+			<origin>1 1</origin>\
+			<size>0.2875 0.3597</size>\
+			<zIndex>11</zIndex>\
+		</image>' $(dirname $(dirname $art))/theme.xml
+  done
 }

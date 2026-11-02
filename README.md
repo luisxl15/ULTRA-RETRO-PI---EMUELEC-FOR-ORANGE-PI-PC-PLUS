@@ -88,6 +88,7 @@ Confira o arquivo com o `.sha256` da mesma release (opcional, mas evita gravar u
 | | Recurso | Detalhe |
 |:-:|---|---|
 | 🎨 | **Tema ComicBook como padrão** | Revisado: visão em grade, menus, coleções automáticas e por gênero com arte no mesmo estilo, imagens otimizadas para a VRAM do H3 |
+| 👾 | **Console em 16 bits na tela de cada sistema** | O console em pixel art estourando no canto, com a estrela "POW" do tema — 70 sistemas |
 | ⏻ | **SAFE SHUTDOWN** | No carrossel de sistemas (com arte no estilo do tema), no menu principal e no menu da lista de jogos — desliga sem corromper o cartão |
 | 🚀 | **Menu de overclock** | *Configurações do sistema → Overclock*, com volta automática se travar (veja o HI-SCORE) |
 | 🕹️ | **Auto Games Setup** | Arcade abre no FBNeo; em *Setup → Auto Games Setup (Arcade)* cada `.zip` é conferido e vai para o núcleo cujo ROMset bate (FBNeo ou MAME 2003-Plus), com relatório de BIOS e jogos faltando |
@@ -165,6 +166,7 @@ A imagem sai em `target/`. Em [`tools/ultra-retro-pi/`](tools/ultra-retro-pi/) e
 * **[EmuELEC](https://github.com/EmuELEC/EmuELEC)** (Shanti Gilbert), **[CoreELEC](https://coreelec.org)**, **[LibreELEC](https://libreelec.tv)** e **[Lakka](https://www.lakka.tv)**
 * **[Batocera EmulationStation](https://github.com/batocera-linux/batocera-emulationstation)** e **[libretro / RetroArch](https://www.libretro.com)**
 * **[TMNTturtleguy](https://github.com/TMNTturtleguy/es-theme-ComicBook)** — tema ComicBook
+* **[Eric Hettervik (Rookervik)](https://github.com/ehettervik/es-theme-pixel-metadata)** — consoles em pixel art do tema Pixel-Metadata, usados na tela de sistema
 * Todos os autores dos emuladores e núcleos incluídos
 
 <div align="center">

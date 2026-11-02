@@ -1,0 +1,9 @@
+Console art in <system>/art/console.png (system view, bottom-right corner)
+
+Pixel art: Pixel-Metadata theme by Eric Hettervik (Rookervik)
+https://github.com/ehettervik/es-theme-pixel-metadata (commit dd9d6eb)
+"Feel free to modify this theme or use graphics in other projects." (README.md, 2023)
+
+Scaled 2x, outlined and placed on a "POW" burst for the ComicBook theme by
+tools/ultra-retro-pi/mk-console-art.py (Ultra Retro Pi).
+Consoles and logos are trademarks of their respective owners.
