@@ -1,0 +1,63 @@
+# build directorys
+/build.*/
+/.fakeroot.*
+
+# automatically downloaded source files
+/sources/
+/.stamps/
+
+# prebuild target binarys to provide
+/target/
+
+# mkpkg temp
+mkpkg-temp
+
+# options
+/.libreelec
+
+# private working directory
+/.work/
+
+# dedicated filesystem
+/lost+found/
+
+# symlinks...
+/sources
+/.work
+
+# ccache
+/.ccache/
+
+# backup files
+*.orig
+
+# crap
+.DS_Store
+.directory
+
+repo/
+repo
+local.conf
+sx05re-kodi*.log
+
+packages/sx05re/experimental/
+
+#H3 changes
+packages/linux-drivers/RTL8812AU/
+packages/linux-drivers/RTL8192DU/
+packages/sysutils/systemd/
+packages/tools/u-boot/
+old_packages/
+packages/sx05re/ports/sm64ex/
+packages/sx05re/ports/sm64ex_hires/
+packages/sx05re/emuelec-ports/lzdoom/*
+packages/sx05re/ports/gleszdoom/*
+packages/sx05re/ports/prototype/*
+packages/sx05re/ports/quake1/*
+packages/sx05re/ports/zandronum/*
+packages/sx05re/ports/zmusic/*
+packages/sx05re/tools/video/glu2/*
+packages/sx05re/emuelec-emulationstation/api_keys.txt
+4.5/*
+new_gcc9/*
+good/*

@@ -1,0 +1,20 @@
+diff -Naur old/linux-user/syscall.c new/linux-user/syscall.c
+--- old/linux-user/syscall.c	2019-04-24 02:14:46.000000000 +0800
++++ new/linux-user/syscall.c	2023-10-04 12:44:31.629036471 +0800
+@@ -37,6 +37,7 @@
+ #include <sched.h>
+ #include <sys/timex.h>
+ #include <sys/socket.h>
++#include <linux/sockios.h>
+ #include <sys/un.h>
+ #include <sys/uio.h>
+ #include <poll.h>
+@@ -7384,7 +7385,7 @@
+             time_t host_time;
+             if (get_user_sal(host_time, arg1))
+                 return -TARGET_EFAULT;
+-            return get_errno(stime(&host_time));
++	        return get_errno(clock_settime(CLOCK_REALTIME, &host_time));
+         }
+ #endif
+ #ifdef TARGET_NR_alarm /* not on alpha */

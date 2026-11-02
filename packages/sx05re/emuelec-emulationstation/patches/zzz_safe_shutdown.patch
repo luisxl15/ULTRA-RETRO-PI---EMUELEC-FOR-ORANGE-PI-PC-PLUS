@@ -1,0 +1,42 @@
+--- a/es-app/src/guis/GuiMenu.cpp
++++ b/es-app/src/guis/GuiMenu.cpp
+@@ -221,6 +221,13 @@
+ if (!isKidUI)
+ #endif
+ 	addEntry(_("QUIT").c_str(), true, [this] { openQuitMenu(); }, "iconQuit");
++
++	// Ultra Retro Pi: same path as QUIT > SHUTDOWN SYSTEM (saves gamelists, then a clean poweroff)
++	addEntry(_("SAFE SHUTDOWN").c_str(), false, [this] {
++		mWindow->pushGui(new GuiMsgBox(mWindow, _("REALLY SHUTDOWN?"),
++			_("YES"), [] { quitES(QuitMode::SHUTDOWN); },
++			_("NO"), nullptr));
++	}, "iconQuit");
+ #endif
+ 	
+ 	addChild(&mMenu);
+--- a/es-app/src/guis/GuiGamelistOptions.cpp
++++ b/es-app/src/guis/GuiGamelistOptions.cpp
+@@ -23,6 +23,7 @@
+ #include "GuiGameAchievements.h"
+ #include "guis/GuiGameOptions.h"
+ #include "views/gamelist/ISimpleGameListView.h"
++#include "platform.h"
+ 
+ std::vector<std::string> GuiGamelistOptions::gridSizes {
+ 	"automatic", "1x1",
+@@ -352,6 +353,15 @@
+ 			}
+ 		}
+ 	}
++
++	// Ultra Retro Pi: power off from the game list, saving gamelists like QUIT > SHUTDOWN SYSTEM
++	mMenu.addGroup(_("SYSTEM"));
++	mMenu.addEntry(_("SAFE SHUTDOWN"), false, [this]
++	{
++		mWindow->pushGui(new GuiMsgBox(mWindow, _("REALLY SHUTDOWN?"),
++			_("YES"), [] { quitES(QuitMode::SHUTDOWN); },
++			_("NO"), nullptr));
++	});
+ 
+ 	mMenu.setMaxHeight(Renderer::getScreenHeight() * 0.85f);
+ 	// center the menu

@@ -1,0 +1,258 @@
+--- a/es-core/src/LocaleES.h
++++ b/es-core/src/LocaleES.h
+@@ -2,7 +2,10 @@
+ #define _LOCALE_H_
+ 
+ 
+-#if !defined(WIN32)
++// EmuELEC: gettext depends on a glibc locale generated at boot by localedef; when that
++// step fails ES silently stays in English. The .po based implementation needs nothing
++// but the translation files, so use it on EmuELEC as well.
++#if !defined(WIN32) && !defined(_ENABLEEMUELEC)
+ 
+ #include <string>
+ 
+@@ -15,8 +18,9 @@
+ #else
+ 
+ #define _(A) std::string(A)
+-char* ngettext(char* msgid, char* msgid_plural, unsigned long int n);
+-char* pgettext(char* context, char* msgid);
++
++const char* ngettext(const char* msgid, const char* msgid_plural, unsigned long int n);
++const char* pgettext(const char* context, const char* msgid);
+ 
+ #endif
+ 
+@@ -33,14 +37,18 @@
+ 	static std::string default_LANGUAGE;
+ };
+ 
+-#else // WIN32
++#else // WIN32 || _ENABLEEMUELEC
+ 
+ #include <string>
+ #include <map>
+ #include <functional>
+ #include "utils/StringUtil.h"
+ 
++#if defined(WIN32)
+ #define _U(x) Utils::String::convertFromWideString(L ## x)
++#else
++#define _U(x) x
++#endif
+ 
+ struct PluralRule
+ {
+@@ -71,12 +79,16 @@
+ 	static PluralRule mPluralRule;
+ };
+ 
++#if defined(WIN32)
+ #define _U(x) Utils::String::convertFromWideString(L ## x)
++#else
++#define _U(x) x
++#endif
+ 
+ #define _(x) EsLocale::getText(x)
+ #define ngettext(A, B, C) EsLocale::nGetText(A, B, C).c_str()
+ #define pgettext(A, B) EsLocale::getTextWithContext(A, B)
+ 
+-#endif // WIN32
++#endif // WIN32 || _ENABLEEMUELEC
+ 
+ #endif
+--- a/es-core/src/LocaleES.cpp
++++ b/es-core/src/LocaleES.cpp
+@@ -3,20 +3,20 @@
+ 
+ #define PACKAGE_LANG "emulationstation2"
+ 
+-#if !defined(WIN32)
++#if !defined(WIN32) && !defined(_ENABLEEMUELEC)
+ 
+ #include "SystemConf.h"
+ 
+ #ifndef HAVE_INTL
+-char* ngettext(char* msgid, char* msgid_plural, unsigned long int n)
++const char* ngettext(const char* msgid, const char* msgid_plural, unsigned long int n)
+ {
+ 	if (n != 1)
+ 		return msgid_plural;
+ 
+ 	return msgid;
+ }
+-char* pgettext(char* context, char* msgid); {
+-  return msgid;
++const char* pgettext(const char* context, const char* msgid) {
++	return msgid;
+ }
+ #endif
+ 
+@@ -87,7 +87,7 @@
+ 
+ #else
+ 
+-// For WIN32 avoid using boost or libintl 
++// For WIN32 (and EmuELEC) avoid using boost or libintl 
+ 
+ #include "resources/ResourceManager.h"
+ #include "Settings.h"
+@@ -255,9 +255,20 @@
+ 
+ 		std::string line;
+ 
+-		std::ifstream file(xmlpath);
+-		while (std::getline(file, line))
++		std::ifstream poStream(xmlpath);
++		std::string old_line;
++		while (1)
+ 		{
++			if (old_line.empty())
++			{
++				if (!std::getline(poStream, line)) break;
++			}
++			else
++			{
++				line = old_line;
++				old_line = "";
++			}
++
+ 			if (line.find("\"Plural-Forms:") == 0)
+ 			{
+ 				auto start = line.find("plural=");
+@@ -270,7 +281,7 @@
+ 					{
+ 						plural = line.substr(start + 7, line.size() - start - 7 - 1);
+ 
+-						std::getline(file, line);
++						std::getline(poStream, line);
+ 						end = line.find(";", start + 1);
+ 						if (end != std::string::npos)
+ 							plural += line.substr(1, end - 1);
+@@ -325,13 +336,28 @@
+ 				msgid = "";
+ 				msgid_plural = "";
+ 
+-				auto start = line.find("\"");
+-				if (start != std::string::npos)
++				int cnt = 0;
++				do
+ 				{
+-					auto end = line.find("\"", start + 1);
+-					if (end != std::string::npos)
+-						msgid = line.substr(start + 1, end - start - 1);
+-				}
++					if (line.empty()) break;
++					else if (line.find("msg") == 0 && cnt > 0)
++					{
++						old_line = line;
++						break;
++					}
++					cnt++;
++
++					auto start = line.find("\"");
++					if (start != std::string::npos)
++					{
++						auto end = line.find("\"", start + 1);
++						if (end != std::string::npos)
++							msgid += line.substr(start + 1, end - start - 1);
++						else break;
++					}
++					else break;
++				} while (std::getline(poStream, line));
++				msgid = Utils::String::replace(msgid, "\\n", "\n");
+ 			}
+ 			else if (line.find("msgstr") == 0)
+ 			{
+@@ -348,30 +374,50 @@
+ 					}
+ 				}
+ 
+-				auto start = line.find("\"");
+-				if (start != std::string::npos)
++				std::string	msgstr;
++				int cnt = 0;
++				do
+ 				{
+-					auto end = line.find("\"", start + 1);
+-					if (end != std::string::npos)
++					if (line.empty()) break;
++					else if (line.find("msg") == 0 && cnt > 0)
+ 					{
+-						std::string	msgstr = line.substr(start + 1, end - start - 1);
+-						if (!msgid.empty() && !msgstr.empty())
+-							if (idx.empty() || idx == "0")
+-								mItems[msgid] = msgstr;
++						old_line = line;
++						break;
++					}
++					cnt++;
+ 
+-						if (!msgctxt.empty() && !msgstr.empty())
+-							mItems[msgctxt + "|" + msgid] = msgstr;
++					auto start = line.find("\"");
++					if (start != std::string::npos)
++					{
++						auto end = line.find("\"", start + 1);
++						if (end != std::string::npos)
++							msgstr += line.substr(start + 1, end - start - 1);
++						else break;
++					}
++					else break;
++				} while (std::getline(poStream, line));
++				msgstr = Utils::String::replace(msgstr, "\\n", "\n");
+ 
+-						if (!msgid_plural.empty() && !msgstr.empty())
+-						{
+-							if (!idx.empty() && idx != "0")
+-								mItems[idx + "@" + msgid_plural] = msgstr;
+-							else
+-								mItems[msgid_plural] = msgstr;
+-						}
++				if (!msgid.empty() && !msgstr.empty())
++				{
++					if (idx.empty() || idx == "0")
++					{
++						if (mItems.find(msgid) == mItems.cend() || msgctxt.empty())
++							mItems[msgid] = msgstr;
+ 					}
+ 				}
+ 
++				if (!msgctxt.empty() && !msgstr.empty())
++					mItems[msgctxt + "|" + msgid] = msgstr;
++
++				if (!msgid_plural.empty() && !msgstr.empty())
++				{
++					if (!idx.empty() && idx != "0")
++						mItems[idx + "@" + msgid_plural] = msgstr;
++					else
++						mItems[msgid_plural] = msgstr;
++				}
++
+ 				msgctxt = "";
+ 			}
+ 		}
+--- a/es-app/src/main.cpp
++++ b/es-app/src/main.cpp
+@@ -328,6 +328,9 @@
+ {
+ #if WIN32
+ 	std::locale::global(std::locale("en-US"));
++#elif defined(_ENABLEEMUELEC)
++	// EmuELEC reads the .po files itself (see LocaleES.h); only the character type comes from LANG
++	setlocale(LC_CTYPE, "");
+ #else
+ 	if (Utils::FileSystem::exists("./locale/lang")) // for local builds
+ 		EsLocale::init("", "./locale/lang");	
+--- a/es-app/src/views/ViewController.cpp
++++ b/es-app/src/views/ViewController.cpp
+@@ -868,7 +868,7 @@
+ 		ResourceManager::getInstance()->reloadAll();
+ 
+ 		ViewController::get()->reloadAll(mWindow);
+-#if WIN32
++#if WIN32 || defined(_ENABLEEMUELEC)
+ 		EsLocale::reset();
+ #endif
+ 		mWindow->closeSplashScreen();

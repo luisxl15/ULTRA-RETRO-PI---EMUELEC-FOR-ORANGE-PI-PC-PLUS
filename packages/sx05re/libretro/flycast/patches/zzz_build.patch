@@ -1,0 +1,12 @@
+diff -Naur old/core/deps/libchdr/CMakeLists.txt new/core/deps/libchdr/CMakeLists.txt
+--- old/core/deps/libchdr/CMakeLists.txt	2023-10-04 13:31:05.000000000 +0800
++++ new/core/deps/libchdr/CMakeLists.txt	2023-10-04 14:23:55.870884208 +0800
+@@ -25,7 +25,7 @@
+ 
+ 
+ # lzma
+-add_subdirectory(deps/lzma-22.01 EXCLUDE_FROM_ALL)
++add_subdirectory(deps/lzma-19.00 EXCLUDE_FROM_ALL)
+   list(APPEND CHDR_LIBS lzma)
+   list(APPEND CHDR_INCLUDES lzma)
+ 

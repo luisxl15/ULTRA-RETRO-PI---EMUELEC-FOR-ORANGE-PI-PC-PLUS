@@ -1,0 +1,12 @@
+diff -Naur old/setup.py new/setup.py
+--- old/setup.py	2020-10-14 16:38:21.000000000 +0800
++++ new/setup.py	2020-10-14 16:56:18.150757625 +0800
+@@ -75,7 +75,7 @@
+ 
+ class build_ext(_build_ext):
+     def run(self):
+-        check_processor()
++        #check_processor()
+         _build_ext.run(self)
+ 
+ 

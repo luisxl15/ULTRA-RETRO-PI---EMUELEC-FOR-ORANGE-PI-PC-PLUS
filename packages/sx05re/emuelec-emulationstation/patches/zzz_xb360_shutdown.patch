@@ -1,0 +1,11 @@
+diff -Naur old/es-core/src/platform.cpp new/es-core/src/platform.cpp
+--- old/es-core/src/platform.cpp	2022-08-16 10:00:55.000000000 +0800
++++ new/es-core/src/platform.cpp	2022-08-25 17:51:28.199292332 +0800
+@@ -30,6 +30,7 @@
+ 	return system("shutdown -s -t 0");
+ #elif defined (_ENABLEEMUELEC)
+     system("/usr/bin/emuelec-utils small-cores enable");
++    system("/usr/bin/xbox360-controllers-shutdown");
+     return system("systemctl poweroff");
+ #else // osx / linux	
+ 	return system("shutdown -h now");

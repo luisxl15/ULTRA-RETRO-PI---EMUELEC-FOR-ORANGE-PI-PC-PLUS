@@ -1,0 +1,86 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2026-present Ultra Retro Pi
+#
+# CPU ceiling profiles for the Orange Pi PC Plus (H3).
+# EmulationStation calls "list" and "set <MHz>" (System settings > Overclock),
+# cpu-overclock.service calls "apply" at boot and "stop" at clean shutdown.
+# The voltage for each step comes from [dvfs_table] in script.bin.
+
+CONF_DIR=/storage/.config/ultraretropi
+CONF=$CONF_DIR/cpu_max_mhz
+PENDING=$CONF_DIR/overclock_pending
+LOG=$CONF_DIR/overclock.log
+ES_SETTINGS=/storage/.config/emulationstation/es_settings.cfg
+DEFAULT=1296
+# an overclock only counts as stable after this long up (or a clean shutdown)
+SAFE_TIME=180
+
+valid() {
+  case "$1" in
+    1008|1200|1296|1344|1440|1536) return 0 ;;
+  esac
+  return 1
+}
+
+set_ceiling() {
+  for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq; do
+    [ -w "$f" ] && echo $(($1 * 1000)) > "$f"
+  done
+}
+
+arm_failsafe() {
+  if [ "$1" -gt $DEFAULT ]; then
+    touch $PENDING
+    ( sleep $SAFE_TIME; rm -f $PENDING ) >/dev/null 2>&1 &
+  else
+    rm -f $PENDING
+  fi
+}
+
+mkdir -p $CONF_DIR
+
+case "$1" in
+  list)
+    echo "1008 1,008 GHz (economia)"
+    echo "1200 1,2 GHz"
+    echo "1296 1,296 GHz (padrao)"
+    echo "1344 1,344 GHz (overclock)"
+    # above the vendor's 1.32 V: needs a heatsink, may not be stable on every chip
+    echo "1440 1,44 GHz (extremo, 1,40 V)"
+    echo "1536 1,536 GHz (extremo, 1,50 V)"
+    ;;
+  get)
+    mhz=$(cat $CONF 2>/dev/null)
+    valid "$mhz" || mhz=$DEFAULT
+    echo $mhz
+    ;;
+  set)
+    valid "$2" || exit 1
+    echo $2 > $CONF
+    set_ceiling $2
+    arm_failsafe $2
+    ;;
+  apply)
+    mhz=$(cat $CONF 2>/dev/null)
+    valid "$mhz" || mhz=$DEFAULT
+    if [ "$mhz" -gt $DEFAULT ] && [ -f $PENDING ]; then
+      # the last boot with this overclock froze or lost power before it proved stable
+      echo "$(date) ${mhz} MHz nao ficou estavel, voltando para ${DEFAULT} MHz" >> $LOG
+      mhz=$DEFAULT
+      echo $mhz > $CONF
+      rm -f $PENDING
+      [ -f $ES_SETTINGS ] && sed -i "s|<string name=\"Overclock\" value=\"[^\"]*\" />|<string name=\"Overclock\" value=\"$DEFAULT\" />|" $ES_SETTINGS
+    fi
+    set_ceiling $mhz
+    arm_failsafe $mhz
+    ;;
+  stop)
+    # clean shutdown: whatever is running did not crash the board
+    rm -f $PENDING
+    ;;
+  *)
+    echo "usage: $0 list|get|set <MHz>|apply|stop" >&2
+    exit 1
+    ;;
+esac

@@ -1,0 +1,12 @@
+diff -Naur old/mk/cmake/SuperTux/ProvideOpenGL.cmake new/mk/cmake/SuperTux/ProvideOpenGL.cmake
+--- old/mk/cmake/SuperTux/ProvideOpenGL.cmake	2022-08-17 12:29:37.000000000 +0800
++++ new/mk/cmake/SuperTux/ProvideOpenGL.cmake	2022-08-17 12:54:00.338943229 +0800
+@@ -11,7 +11,7 @@
+     list(APPEND OPENGL_COMPILE_DEFINITIONS "USE_OPENGLES2")
+ 
+     if(NOT EMSCRIPTEN)
+-      pkg_check_modules(GLESV2 REQUIRED glesv2)
++      #pkg_check_modules(GLESV2 REQUIRED glesv2)
+       list(APPEND OPENGL_INCLUDE_DIRECTORIES "${GLESV2_INCLUDE_DIRS}")
+       list(APPEND OPENGL_LINK_LIBRARIES "${GLESV2_LIBRARIES}")
+     endif()

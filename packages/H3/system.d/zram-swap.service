@@ -1,0 +1,14 @@
+[Unit]
+Description=Compressed swap in RAM (zram)
+DefaultDependencies=no
+Before=swap.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# 1 GB board: 256 MB of zram holds ~3x that in LZO-compressed pages
+ExecStart=/bin/sh -c 'modprobe zram num_devices=1 && echo 256M > /sys/block/zram0/disksize && mkswap /dev/zram0 && swapon /dev/zram0'
+ExecStop=/bin/sh -c 'swapoff /dev/zram0; rmmod zram'
+
+[Install]
+WantedBy=swap.target

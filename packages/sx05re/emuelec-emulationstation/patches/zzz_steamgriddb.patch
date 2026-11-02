@@ -1,0 +1,294 @@
+--- a/es-app/CMakeLists.txt
++++ b/es-app/CMakeLists.txt
+@@ -81,6 +81,7 @@
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/GamesDBJSONScraperResources.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ArcadeDBJSONScraper.h
+ 	${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/HfsDBScraper.h
++	${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/SteamGridDBScraper.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ScreenScraper.h    
+ 
+     # Views
+@@ -181,6 +182,7 @@
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/GamesDBJSONScraperResources.cpp
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ArcadeDBJSONScraper.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/HfsDBScraper.cpp
++	${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/SteamGridDBScraper.cpp
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/ScreenScraper.cpp	
+ 
+     # Views
+--- a/es-app/src/guis/GuiScraperSettings.cpp
++++ b/es-app/src/guis/GuiScraperSettings.cpp
+@@ -158,4 +158,8 @@
+ 		addInputTextRow(_("USERNAME"), "ScreenScraperUser", false, true);
+ 		addInputTextRow(_("PASSWORD"), "ScreenScraperPass", true, true);
+ 	}
++
++	// SteamGridDB: free key from https://www.steamgriddb.com/profile/preferences/api
++	if (scraper == "SteamGridDB")
++		addInputTextRow(_("API KEY"), "SteamGridDBKey", true, true);
+ }
+\ No newline at end of file
+--- a/es-app/src/scrapers/Scraper.cpp
++++ b/es-app/src/scrapers/Scraper.cpp
+@@ -14,6 +14,7 @@
+ #include <thread>
+ #include <SDL_timer.h>
+ #include "HfsDBScraper.h"
++#include "SteamGridDBScraper.h"
+ 
+ #define OVERQUOTA_RETRY_DELAY 15000
+ #define OVERQUOTA_RETRY_COUNT 5
+@@ -32,7 +33,9 @@
+ 	{ "HfsDB", new HfsDBScraper() },
+ #endif
+ 
+-	{ "ArcadeDB", new ArcadeDBScraper() }
++	{ "ArcadeDB", new ArcadeDBScraper() },
++
++	{ "SteamGridDB", new SteamGridDBScraper() }
+ };
+ 
+ std::string Scraper::getScraperName(Scraper* scraper)
+--- /dev/null
++++ b/es-app/src/scrapers/SteamGridDBScraper.cpp
+@@ -0,0 +1,180 @@
++#include "scrapers/SteamGridDBScraper.h"
++
++#include "FileData.h"
++#include "Log.h"
++#include "Settings.h"
++#include "SystemData.h"
++#include "utils/FileSystemUtil.h"
++#include "utils/StringUtil.h"
++#include "utils/TimeUtil.h"
++
++#include <rapidjson/document.h>
++#include <rapidjson/error/en.h>
++
++using namespace rapidjson;
++
++#define STEAMGRIDDB_API "https://www.steamgriddb.com/api/v2"
++
++// static art only (no animated webp), and nothing nsfw or joke covers
++#define STEAMGRIDDB_FILTER "&mimes=image/png,image/jpeg&types=static&nsfw=false&humor=false"
++
++namespace
++{
++	bool isBoxSource(const std::string& source) { return source == "box-2D" || source == "box-3D"; }
++
++	bool wantsGrid()
++	{
++		return isBoxSource(Settings::getInstance()->getString("ScrapperImageSrc")) ||
++			isBoxSource(Settings::getInstance()->getString("ScrapperThumbSrc"));
++	}
++
++	bool wantsHero()
++	{
++		return Settings::getInstance()->getString("ScrapperImageSrc") == "fanart" || Settings::getInstance()->getBool("ScrapeFanart");
++	}
++
++	bool wantsLogo()
++	{
++		return !Settings::getInstance()->getString("ScrapperLogoSrc").empty();
++	}
++
++	std::string extensionOf(const std::string& url)
++	{
++		auto ext = Utils::String::toLower(Utils::FileSystem::getExtension(url));
++		return ext == ".jpg" || ext == ".jpeg" ? ".jpg" : ".png";
++	}
++}
++
++void SteamGridDBScraper::generateRequests(const ScraperSearchParams& params,
++	std::queue<std::unique_ptr<ScraperRequest>>& requests, std::vector<ScraperSearchResult>& results)
++{
++	if (Settings::getInstance()->getString("SteamGridDBKey").empty())
++	{
++		LOG(LogError) << "SteamGridDB: no API key, get one at https://www.steamgriddb.com/profile/preferences/api";
++		return;
++	}
++
++	std::string name = params.nameOverride;
++	if (name.empty())
++		name = Utils::String::removeParenthesis(params.game->getName());
++
++	name = Utils::String::trim(name);
++	if (name.empty())
++		return;
++
++	std::string url = std::string(STEAMGRIDDB_API) + "/search/autocomplete/" + HttpReq::urlEncode(name);
++	requests.push(std::unique_ptr<ScraperRequest>(new SteamGridDBRequest(&requests, results, url,
++		SteamGridDBRequest::SEARCH, std::make_shared<ScraperSearchResult>("SteamGridDB"))));
++}
++
++bool SteamGridDBScraper::isSupportedPlatform(SystemData* system)
++{
++	// lookups are by title, the database is not split by platform
++	return system != nullptr;
++}
++
++const std::set<Scraper::ScraperMediaSource>& SteamGridDBScraper::getSupportedMedias()
++{
++	static std::set<ScraperMediaSource> mdds = {
++		ScraperMediaSource::Box2d,
++		ScraperMediaSource::Wheel,
++		ScraperMediaSource::Marquee,
++		ScraperMediaSource::FanArt
++	};
++
++	return mdds;
++}
++
++HttpReqOptions* SteamGridDBRequest::authOptions()
++{
++	// copied by ScraperHttpRequest, so the key is read fresh for every request
++	static HttpReqOptions options;
++	options.customHeaders = { "Authorization: Bearer " + Settings::getInstance()->getString("SteamGridDBKey") };
++	return &options;
++}
++
++SteamGridDBRequest::SteamGridDBRequest(std::queue<std::unique_ptr<ScraperRequest>>* requestsWrite,
++	std::vector<ScraperSearchResult>& resultsWrite, const std::string& url, Step step,
++	std::shared_ptr<ScraperSearchResult> partial)
++	: ScraperHttpRequest(resultsWrite, url, authOptions()), mRequestQueue(requestsWrite), mStep(step), mPartial(partial)
++{
++}
++
++bool SteamGridDBRequest::process(HttpReq* request, std::vector<ScraperSearchResult>& results)
++{
++	Document doc;
++	doc.Parse(request->getContent().c_str());
++
++	if (doc.HasParseError() || !doc.IsObject())
++	{
++		LOG(LogError) << "SteamGridDB: error parsing JSON - " << GetParseError_En(doc.GetParseError());
++		return true;
++	}
++
++	if (!doc.HasMember("data") || !doc["data"].IsArray() || doc["data"].Size() == 0)
++		return true;
++
++	const Value& first = doc["data"][0];
++
++	if (mStep == SEARCH)
++	{
++		if (!first.HasMember("id") || !first["id"].IsInt())
++			return true;
++
++		if (first.HasMember("name") && first["name"].IsString())
++			mPartial->mdl.set(MetaDataId::Name, first["name"].GetString());
++
++		if (first.HasMember("release_date") && first["release_date"].IsInt64() &&first["release_date"].GetInt64() > 0)
++			mPartial->mdl.set(MetaDataId::ReleaseDate, Utils::Time::DateTime((time_t)first["release_date"].GetInt64()));
++
++		std::string game = std::to_string(first["id"].GetInt());
++
++		if (wantsGrid())
++			mRequestQueue->push(std::unique_ptr<ScraperRequest>(new SteamGridDBRequest(mRequestQueue, results,
++				std::string(STEAMGRIDDB_API) + "/grids/game/" + game + "?dimensions=600x900" + STEAMGRIDDB_FILTER, GRID, mPartial)));
++
++		if (wantsHero())
++			mRequestQueue->push(std::unique_ptr<ScraperRequest>(new SteamGridDBRequest(mRequestQueue, results,
++				std::string(STEAMGRIDDB_API) + "/heroes/game/" + game + "?" + std::string(STEAMGRIDDB_FILTER).substr(1), HERO, mPartial)));
++
++		if (wantsLogo())
++			mRequestQueue->push(std::unique_ptr<ScraperRequest>(new SteamGridDBRequest(mRequestQueue, results,
++				std::string(STEAMGRIDDB_API) + "/logos/game/" + game + "?mimes=image/png&types=static&nsfw=false&humor=false", LOGO, mPartial)));
++
++		mRequestQueue->push(std::unique_ptr<ScraperRequest>(new SteamGridDBCommit(results, mPartial)));
++		return true;
++	}
++
++	if (!first.HasMember("url") || !first["url"].IsString())
++		return true;
++
++	std::string url = first["url"].GetString();
++	ScraperSearchItem item(url, extensionOf(url));
++
++	if (mStep == GRID)
++	{
++		if (isBoxSource(Settings::getInstance()->getString("ScrapperImageSrc")))
++			mPartial->urls[MetaDataId::Image] = item;
++
++		if (isBoxSource(Settings::getInstance()->getString("ScrapperThumbSrc")))
++			mPartial->urls[MetaDataId::Thumbnail] = item;
++	}
++	else if (mStep == HERO)
++	{
++		if (Settings::getInstance()->getString("ScrapperImageSrc") == "fanart")
++			mPartial->urls[MetaDataId::Image] = item;
++
++		if (Settings::getInstance()->getBool("ScrapeFanart"))
++			mPartial->urls[MetaDataId::FanArt] = item;
++	}
++	else if (mStep == LOGO)
++		mPartial->urls[MetaDataId::Marquee] = item;
++
++	return true;
++}
++
++void SteamGridDBCommit::update()
++{
++	mResults.push_back(*mPartial);
++	setStatus(ASYNC_DONE);
++}
+--- /dev/null
++++ b/es-app/src/scrapers/SteamGridDBScraper.h
+@@ -0,0 +1,57 @@
++#pragma once
++#ifndef ES_APP_SCRAPERS_STEAMGRIDDB_SCRAPER_H
++#define ES_APP_SCRAPERS_STEAMGRIDDB_SCRAPER_H
++
++#include "scrapers/Scraper.h"
++
++// SteamGridDB (https://www.steamgriddb.com) only has artwork: box art (grids),
++// banners (heroes) and transparent logos. It needs a free API key, stored in
++// the "SteamGridDBKey" setting.
++class SteamGridDBScraper : public Scraper
++{
++public:
++	void generateRequests(const ScraperSearchParams& params,
++		std::queue<std::unique_ptr<ScraperRequest>>& requests,
++		std::vector<ScraperSearchResult>& results) override;
++
++	bool isSupportedPlatform(SystemData* system) override;
++
++	const std::set<ScraperMediaSource>& getSupportedMedias() override;
++};
++
++// One step of a lookup. The search step queues the artwork steps and a final
++// commit, which share one partial result: the search handle stops at the first
++// finished request that left a result behind, so only the commit may add it.
++class SteamGridDBRequest : public ScraperHttpRequest
++{
++public:
++	enum Step { SEARCH, GRID, HERO, LOGO };
++
++	SteamGridDBRequest(std::queue<std::unique_ptr<ScraperRequest>>* requestsWrite,
++		std::vector<ScraperSearchResult>& resultsWrite, const std::string& url, Step step,
++		std::shared_ptr<ScraperSearchResult> partial);
++
++protected:
++	bool process(HttpReq* request, std::vector<ScraperSearchResult>& results) override;
++
++private:
++	static HttpReqOptions* authOptions();
++
++	std::queue<std::unique_ptr<ScraperRequest>>* mRequestQueue;
++	Step mStep;
++	std::shared_ptr<ScraperSearchResult> mPartial;
++};
++
++class SteamGridDBCommit : public ScraperRequest
++{
++public:
++	SteamGridDBCommit(std::vector<ScraperSearchResult>& resultsWrite, std::shared_ptr<ScraperSearchResult> partial)
++		: ScraperRequest(resultsWrite), mPartial(partial) { }
++
++	void update() override;
++
++private:
++	std::shared_ptr<ScraperSearchResult> mPartial;
++};
++
++#endif // ES_APP_SCRAPERS_STEAMGRIDDB_SCRAPER_H

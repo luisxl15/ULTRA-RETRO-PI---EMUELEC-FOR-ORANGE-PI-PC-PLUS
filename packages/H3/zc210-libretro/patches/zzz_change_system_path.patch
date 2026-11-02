@@ -1,0 +1,30 @@
+diff -Naur old/libretro.cpp new/libretro.cpp
+--- old/libretro.cpp	2022-08-25 09:15:52.000000000 +0800
++++ new/libretro.cpp	2022-08-29 11:06:07.876645015 +0800
+@@ -34,7 +34,7 @@
+ static retro_log_printf_t log_cb;
+ 
+ float sampling_rate;
+-char default_path[] = ".";
++char default_path[] = "/storage/.config/";
+ char *save_path;
+ char *system_path;
+ char sfx_file[16];
+@@ -84,12 +84,12 @@
+       save_path = default_path;
+    }
+ 
+-   if (!environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_path)
+-         || !system_path)
+-   {
+-      log_cb(RETRO_LOG_INFO, "Defaulting system directory to %s\n", default_path);
++   // if (!environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_path)
++         // || !system_path)
++   // {
++      // log_cb(RETRO_LOG_INFO, "Defaulting system directory to %s\n", default_path);
+       system_path = default_path;
+-   }
++   // }
+ }
+ 
+ void retro_deinit(void)

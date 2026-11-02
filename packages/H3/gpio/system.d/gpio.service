@@ -1,0 +1,10 @@
+[Unit]
+Description=EmuELEC-H3 CONTROLLER
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python /storage/.config/gpio/tz_gpio_controller.py  > /storage/.config/gpio/tz_gpio_controller.log
+
+[Install]
+WantedBy=multi-user.target

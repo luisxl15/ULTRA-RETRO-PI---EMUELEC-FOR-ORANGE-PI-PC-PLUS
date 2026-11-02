@@ -1,0 +1,30 @@
+--- a/es-app/src/ApiSystem.cpp
++++ b/es-app/src/ApiSystem.cpp
+@@ -219,13 +219,15 @@
+ 
+ bool ApiSystem::setOverclock(std::string mode) 
+ {
+-#ifdef _ENABLEEMUELEC
+-	return true;
+-#endif
+ 	if (mode.empty())
+ 		return false;
+ 
++#ifdef _ENABLEEMUELEC
++	// only boards that ship /usr/bin/batocera/batocera-overclock get the menu (see isScriptingSupported)
++	return executeScript("/usr/bin/batocera/batocera-overclock set " + mode);
++#else
+ 	return executeScript("batocera-overclock set " + mode);
++#endif
+ }
+ 
+ // BusyComponent* ui
+@@ -566,7 +568,7 @@
+ std::vector<std::string> ApiSystem::getAvailableOverclocking() 
+ {
+ #ifdef _ENABLEEMUELEC
+-	return executeEnumerationScript("echo no");
++	return executeEnumerationScript("/usr/bin/batocera/batocera-overclock list");
+ #else
+ 	return executeEnumerationScript("batocera-overclock list");
+ #endif

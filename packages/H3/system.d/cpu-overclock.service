@@ -1,0 +1,12 @@
+[Unit]
+Description=Ultra Retro Pi CPU frequency profile
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/batocera/batocera-overclock apply
+ExecStop=/usr/bin/batocera/batocera-overclock stop
+
+[Install]
+WantedBy=multi-user.target

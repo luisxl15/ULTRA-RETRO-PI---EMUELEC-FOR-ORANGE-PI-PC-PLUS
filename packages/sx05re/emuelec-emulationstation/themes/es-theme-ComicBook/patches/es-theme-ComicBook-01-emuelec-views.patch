@@ -1,0 +1,102 @@
+--- a/comic_book.xml
++++ b/comic_book.xml
+@@ -9,7 +9,7 @@
+ <theme>
+     <formatVersion>3</formatVersion>
+ <!-- Helpsystem menu all views //-->
+-	<view name="system, basic, detailed, video">
++	<view name="system, basic, detailed, video, grid">
+ 
+ 		<helpsystem name="help">
+ 			<textColor>7d7d7d</textColor>
+@@ -240,4 +240,89 @@
+ 	</view>
+ <!-- End Meta Data //-->
+ 
++<!-- EmuELEC: grid gamelist view //-->
++	<view name="grid">
++
++		<image name="background">
++			<tile>false</tile>
++			<pos>0 0</pos>
++			<origin>0 0</origin>
++			<size>1 1</size>
++			<path>./art/grid.png</path>
++		</image>
++
++		<imagegrid name="gamegrid">
++			<pos>0.03 0.195</pos>
++			<size>0.79 0.715</size>
++			<margin>0.012 0.02</margin>
++			<autoLayout>4 3</autoLayout>
++			<autoLayoutSelectedZoom>1.06</autoLayoutSelectedZoom>
++			<imageSource>image</imageSource>
++			<scrollSound>./art/scroll.wav</scrollSound>
++		</imagegrid>
++
++		<gridtile name="default">
++			<padding>0.008 0.012</padding>
++			<backgroundImage>./art/tile.png</backgroundImage>
++			<backgroundCornerSize>8 8</backgroundCornerSize>
++			<backgroundColor>ffffffff</backgroundColor>
++		</gridtile>
++
++		<gridtile name="selected">
++			<backgroundColor>ffd23fff</backgroundColor>
++		</gridtile>
++
++		<text name="md_name">
++			<pos>0.52 0.03</pos>
++			<size>0.44 0.11</size>
++			<color>ffffff</color>
++			<fontPath>./art/Shaka_Pow.ttf</fontPath>
++			<fontSize>0.04</fontSize>
++			<alignment>center</alignment>
++			<forceUppercase>0</forceUppercase>
++		</text>
++
++	</view>
++<!-- End grid view //-->
++<!-- EmuELEC: menus in the comic style //-->
++	<view name="menu">
++
++		<menuBackground name="menubg">
++			<color>f4efe2ff</color>
++			<centerColor>f4efe2ff</centerColor>
++			<scrollbarColor>141018ff</scrollbarColor>
++		</menuBackground>
++
++		<menuText name="menutitle">
++			<fontPath>./art/Shaka_Pow.ttf</fontPath>
++			<color>141018ff</color>
++		</menuText>
++
++		<menuText name="menufooter">
++			<fontPath>./art/Cabin-Bold.ttf</fontPath>
++			<color>7d7d7dff</color>
++		</menuText>
++
++		<menuText name="menutext">
++			<fontPath>./art/Cabin-Bold.ttf</fontPath>
++			<color>141018ff</color>
++			<selectorColor>ffd23fff</selectorColor>
++			<selectedColor>141018ff</selectedColor>
++			<separatorColor>cbc8c0ff</separatorColor>
++		</menuText>
++
++		<menuTextSmall name="menutextsmall">
++			<fontPath>./art/Cabin-Bold.ttf</fontPath>
++			<color>555555ff</color>
++		</menuTextSmall>
++
++		<menuGroup name="menugroup">
++			<fontPath>./art/Shaka_Pow.ttf</fontPath>
++			<color>d62828ff</color>
++			<backgroundColor>f4efe2ff</backgroundColor>
++			<separatorColor>141018ff</separatorColor>
++		</menuGroup>
++
++	</view>
++<!-- End menus //-->
+ </theme>
+\ No newline at end of file

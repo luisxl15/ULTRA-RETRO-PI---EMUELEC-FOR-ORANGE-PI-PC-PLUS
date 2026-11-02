@@ -1,0 +1,152 @@
+#!/bin/sh
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+# Copyright (C) 2018-present Team CoreELEC (https://coreelec.org)
+
+# Grows /storage (2nd partition) to STORAGE_MIB and gives the rest of the card
+# to an EEROMS partition. Runs from fs-resize.target while /storage/.please_resize_me
+# exists: the image ships that mark for the first boot, and the Danger Zone menu
+# ("EXPAND STORAGE TO FULL CARD") creates it on an installed system.
+#
+# It works in two boots. The H3 kernel (3.4) can't be told that a partition of a
+# disk in use changed size (BLKPG_RESIZE_PARTITION only exists since 3.6), so pass 1
+# only writes the partition table and reboots; pass 2 grows the filesystem and
+# formats EEROMS once the kernel has read the new table at boot.
+#
+# Nothing is ever shrunk and a partition that already has a filesystem is never
+# formatted, so running it again on a used card keeps every file.
+
+MARK=/storage/.please_resize_me
+PASS2=/storage/.please_resize_me_pass2
+STORAGE_MIB=4096        # /storage size, the rest goes to EEROMS
+MIN_EEROMS_MIB=512      # don't bother with a smaller ROMs partition
+
+if [ -e $MARK ] ; then
+  . /usr/lib/coreelec/functions
+
+  hidecursor
+
+  # get the disk. /storage on 2nd partition
+  PART=$(grep "/storage " /proc/mounts | cut -d" " -f1)
+
+  # /dev/mmcblkXp2 -> /dev/mmcblkX + "p", /dev/sdX2 -> /dev/sdX
+  case $PART in
+    "/dev/mmcblk"*|"/dev/nvme"*)
+      DISK=${PART%p2}
+      PSEP=p
+      ;;
+    *)
+      DISK=${PART%2}
+      PSEP=
+      ;;
+  esac
+  EEROMS=${DISK}${PSEP}3
+
+  if [ -z "$DISK" -o -z "$PART" -o "$DISK" = "$PART" ] ; then
+    rm -f $MARK $PASS2
+    sync
+    reboot -f
+  fi
+
+  # Get EEROMS filetype
+  ROM_FS_TYPE="vfat"
+  PARTED_FS_TYPE="fat32"
+
+  if [ -e "/flash/ee_fstype" ]; then
+    case $(cat "/flash/ee_fstype") in
+      "ntfs")
+        ROM_FS_TYPE="ntfs"
+        PARTED_FS_TYPE="ntfs"
+        ;;
+      "ext4")
+        ROM_FS_TYPE="ext4"
+        PARTED_FS_TYPE="ext4"
+        ;;
+      "exfat")
+        ROM_FS_TYPE="exfat"
+        PARTED_FS_TYPE="ntfs"
+        ;;
+    esac
+  fi
+
+  echo "PARTITION RESIZING IN PROGRESS"
+  echo ""
+  echo "Please do not reboot or turn off your @DISTRONAME@ device!"
+  echo ""
+
+  if [ ! -e $PASS2 ] ; then
+    # ---- pass 1: partition table only ----
+    rm -f $MARK
+    sync
+    umount $PART
+
+    # identify the partition scheme, and if gpt fix minor issues such as gpt header not at end of disk
+    SCHEME=$(blkid -s PTTYPE -o value $DISK)
+    if [ "$SCHEME" = "gpt" ]; then
+      StartProgress spinner "Checking layout...      " "sgdisk -e $DISK &>/dev/null"
+    fi
+
+    # sizes in MiB from parted's machine output, e.g. "2:1028MiB:1060MiB:32.0MiB:ext4::;"
+    TABLE=$(parted -s -m $DISK unit MiB print 2>/dev/null)
+    DISK_END=$(echo "$TABLE" | awk -F: -v d="$DISK" '$1==d {sub("MiB","",$2); print int($2)}')
+    P2_END=$(echo "$TABLE" | awk -F: '$1=="2" {sub("MiB","",$3); print int($3)}')
+    HAS_P3=$(echo "$TABLE" | awk -F: '$1=="3" {print "yes"}')
+
+    if [ -n "$DISK_END" -a -n "$P2_END" -a -z "$HAS_P3" ] ; then
+      if [ $(( DISK_END - STORAGE_MIB )) -lt $MIN_EEROMS_MIB ] ; then
+        # small card: all of it for /storage, no EEROMS
+        if [ $P2_END -lt $(( DISK_END - 1 )) ] ; then
+          StartProgress spinner "Resizing partition...   " "parted -s -a optimal -m $DISK resizepart 2 100% &>/dev/null"
+        fi
+      else
+        if [ $P2_END -lt $STORAGE_MIB ] ; then
+          StartProgress spinner "Resizing partition...   " "parted -s -a optimal -m $DISK resizepart 2 ${STORAGE_MIB}MiB &>/dev/null"
+          P2_END=$STORAGE_MIB
+        fi
+
+        if [ $(( DISK_END - P2_END - 1 )) -ge $MIN_EEROMS_MIB ] ; then
+          StartProgress spinner "Creating EEROMS partition..." "parted -s -a optimal -m $DISK mkpart primary ${PARTED_FS_TYPE} $(( P2_END + 1 ))MiB 100% &>/dev/null"
+          # MBR type 0x0C (FAT32 LBA): the type Windows looks for to give the ROMs a drive letter
+          if [ "$SCHEME" = "dos" -o "$SCHEME" = "msdos" ] && [ "$PARTED_FS_TYPE" = "fat32" ] ; then
+            parted -s $DISK set 3 lba on &>/dev/null
+          fi
+        fi
+      fi
+    fi
+
+    # come back after a reboot, when the kernel sees the new sizes
+    mount $PART /storage
+    touch $MARK $PASS2
+    sync
+    StartProgress countdown "Rebooting in 5s...     " 5 "NOW"
+  else
+    # ---- pass 2: grow the filesystem, format a new EEROMS ----
+    rm -f $MARK $PASS2
+    sync
+    umount $PART
+
+    StartProgress spinner "Checking file system... " "e2fsck -f -p $PART &>/dev/null"
+    StartProgress spinner "Resizing file system... " "resize2fs $PART &>/dev/null"
+
+    if [ -b $EEROMS -a -z "$(blkid -s TYPE -o value $EEROMS)" ] ; then
+      case $ROM_FS_TYPE in
+        "ntfs")
+          StartProgress spinner "Formatting EEROMS partition as NTFS..." "mkfs.ntfs -L EEROMS -f $EEROMS &>/dev/null"
+          ;;
+        "ext4")
+          StartProgress spinner "Formatting EEROMS partition as EXT4..." "mkfs.ext4 -L EEROMS -t ext4 -O 64bit $EEROMS &>/dev/null"
+          ;;
+        "exfat")
+          StartProgress spinner "Formatting EEROMS partition as EXFAT..." "mkfs.exfat -n EEROMS $EEROMS &>/dev/null"
+          ;;
+        *)
+          StartProgress spinner "Formatting EEROMS partition as FAT32..." "mkfs.vfat -F 32 -n EEROMS $EEROMS &>/dev/null"
+          ;;
+      esac
+    fi
+
+    StartProgress countdown "Rebooting in 5s...     " 5 "NOW"
+  fi
+fi
+reboot -f &>/dev/null
