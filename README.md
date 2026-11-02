@@ -88,16 +88,18 @@ Confira o arquivo com o `.sha256` da mesma release (opcional, mas evita gravar u
 | | Recurso | Detalhe |
 |:-:|---|---|
 | 🎨 | **Tema ComicBook como padrão** | Revisado: visão em grade, menus, coleções automáticas e por gênero com arte no mesmo estilo, imagens otimizadas para a VRAM do H3 |
-| ⏻ | **SAFE SHUTDOWN** | No menu principal e no menu da lista de jogos — desliga sem corromper o cartão |
+| ⏻ | **SAFE SHUTDOWN** | No carrossel de sistemas (com arte no estilo do tema), no menu principal e no menu da lista de jogos — desliga sem corromper o cartão |
 | 🚀 | **Menu de overclock** | *Configurações do sistema → Overclock*, com volta automática se travar (veja o HI-SCORE) |
+| 🕹️ | **Auto Games Setup** | Arcade abre no FBNeo; em *Setup → Auto Games Setup (Arcade)* cada `.zip` é conferido e vai para o núcleo cujo ROMset bate (FBNeo ou MAME 2003-Plus), com relatório de BIOS e jogos faltando |
+| 🔌 | **Controles no GPIO** | Liga e desliga em *Setup → GPIO Controls (Ativar/Desativar)* ou no menu START (*Controles no GPIO*) |
 | 🖼️ | **Scraper SteamGridDB** | Capas, *heroes* e logos do SteamGridDB — basta colocar sua API key no menu do scraper |
 | 💾 | **Redimensionamento automático** | No primeiro boot, e de novo quando quiser em *Danger Zone → Expandir armazenamento para o cartão inteiro* |
 | 🪟 | **ROMs visíveis no Windows** | Partição `EEROMS` em FAT32 (tipo 0x0C), sem precisar de rede |
 | 🌎 | **Idioma que funciona** | O EmulationStation lê as traduções direto dos `.po` (corrige o [issue #60](https://github.com/asakous/Neo-EmuELEC-H3/issues/60)); pt-BR revisado |
 | 🔄 | **RetroArch 1.22.2** | Com os patches do EmuELEC |
 | 🧩 | **96 núcleos libretro** | 72 atualizados e 6 novos: **fake-08** (PICO-8), **FreeChaF** (Channel F), **JAXE** (CHIP-8), **LowRes NX**, **Gearlynx** (Lynx), **Geargrafx** (PC Engine) |
-| ⚡ | **Afinado para o H3** | 720p, zram, núcleos padrão mais leves (gpSP, Snes9x 2010, FCEUmm, PicoDrive), transições instantâneas |
-| 📶 | **Wi-Fi da PC Plus** | Driver RTL8189FS carregado no boot |
+| ⚡ | **Afinado para o H3** | 720p, zram, núcleos padrão mais leves (gpSP, Snes9x 2010, FCEUmm, PicoDrive, FBNeo), transições instantâneas |
+| 📶 | **Wi-Fi da PC Plus** | Driver RTL8189FS carregado no boot, com endereço MAC fixo |
 | 🧹 | **Sem peso morto** | Dreamcast/Naomi/Atomiswave, PSP, N64 e a seção Ports foram tirados — não rodam bem na Mali-400 |
 
 ### 🎮 Alguns sistemas no menu
@@ -117,7 +119,7 @@ Confira o arquivo com o `.sha256` da mesma release (opcional, mas evita gravar u
 
 ## 🏆 HI-SCORE — overclock
 
-*Configurações do sistema → Overclock*. Se o sistema travar antes de **3 minutos** num perfil novo, ele **volta sozinho para 1,296 GHz** no boot seguinte.
+*Configurações do sistema → Overclock*. Se o sistema travar antes de **3 minutos** num perfil novo, ele **volta sozinho para 1,296 GHz** no boot seguinte. Para conferir se pegou, veja *Frequência atual do processador* no menu **Informações**.
 
 | Perfil | Clock | Para quê |
 |---|:-:|---|
