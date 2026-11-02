@@ -21,4 +21,11 @@ post_install() {
   cp $PKG_DIR/scripts/batocera-overclock $INSTALL/usr/bin/batocera/
   chmod +x $INSTALL/usr/bin/batocera/batocera-overclock
   enable_service cpu-overclock.service
+
+  # AUTO GAMES SETUP (Setup > Auto Games Setup): arcade core per game from the ROM set.
+  # The indexes come from the cores' DATs: tools/ultra-retro-pi/mk-arcade-index.py
+  cp $PKG_DIR/autosetup/ultraretropi-autosetup.py $INSTALL/usr/bin/
+  chmod +x $INSTALL/usr/bin/ultraretropi-autosetup.py
+  mkdir -p $INSTALL/usr/share/ultraretropi/autosetup
+  cp $PKG_DIR/autosetup/*.idx.gz $INSTALL/usr/share/ultraretropi/autosetup/
 }

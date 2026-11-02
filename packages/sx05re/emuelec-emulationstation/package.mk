@@ -174,7 +174,9 @@ if [ "${PROJECT}" == "H3" ]; then
 		-r "//systemTMP" -v "system" ${CORESFILE}
 
 	# lighter default cores for the Cortex-A7 (the others stay selectable)
-	for syscore in gba:gpsp snes:snes9x2010 nes:fceumm megadrive:picodrive genesis:picodrive segacd:picodrive; do
+	# arcade: FBNeo first (lighter than MAME, less lag); Setup > Auto Games Setup moves the games
+	# whose ROM set only matches MAME 2003-Plus
+	for syscore in gba:gpsp snes:snes9x2010 nes:fceumm megadrive:picodrive genesis:picodrive segacd:picodrive arcade:fbneo; do
 		xmlstarlet ed -L -P -d "/systemList/system[name='${syscore%%:*}']//core/@default" \
 			-i "/systemList/system[name='${syscore%%:*}']//core[.='${syscore##*:}']" -t attr -n default -v true ${CORESFILE}
 	done

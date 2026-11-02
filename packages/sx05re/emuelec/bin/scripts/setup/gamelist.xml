@@ -125,4 +125,12 @@
 		<publisher>Ultra Retro Pi</publisher>
 		<genre>script</genre>
 	</game>
+	<game>
+		<path>./auto_games_setup.sh</path>
+		<name>Auto Games Setup (Arcade)</name>
+		<desc>Le as ROMs de arcade e escolhe sozinho o nucleo certo para cada jogo pelo ROMset (FBNeo primeiro, MAME 2003-Plus quando so ele serve). Mostra os jogos com ROMset errado e BIOS faltando.</desc>
+		<developer>Ultra Retro Pi</developer>
+		<publisher>Ultra Retro Pi</publisher>
+		<genre>script</genre>
+	</game>
 </gameList>
