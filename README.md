@@ -27,6 +27,7 @@
 ╔══════════════════════════════════════════════════════════════════╗
 ║   ★  U L T R A   R E T R O   P I  ★           CREDIT 01   1UP    ║
 ║                                                                  ║
+║   ► ATTRACT MODE ... AS TELAS                                    ║
 ║   ► STAGE 1 ........ BAIXAR A IMAGEM                             ║
 ║   ► STAGE 2 ........ GRAVAR NO CARTÃO                            ║
 ║   ► STAGE 3 ........ PRIMEIRO BOOT                               ║
@@ -36,6 +37,33 @@
 ║   ► CREDITS ........ QUEM FEZ ISSO POSSÍVEL                      ║
 ╚══════════════════════════════════════════════════════════════════╝
 ```
+
+<img src="docs/divider.svg" width="100%" height="8">
+
+## 📺 ATTRACT MODE — as telas
+
+<div align="center">
+
+<img src="docs/screenshots/01-sistema-snes.jpg" alt="Tela de sistema do Super Nintendo, com o console em pixel art no canto" width="100%">
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/02-sistema-megadrive.jpg" alt="Mega Drive"><br><sub><b>Console 16 bits</b> estourando no canto de cada sistema</sub></td>
+<td width="50%"><img src="docs/screenshots/03-sistema-playstation.jpg" alt="PlayStation"><br><sub>70 sistemas com o console no tema <b>ComicBook</b></sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/00-sistema-arcade.jpg" alt="Arcade"><br><sub><b>Arcade</b> abre no FBNeo</sub></td>
+<td><img src="docs/screenshots/04-sistema-desligar.jpg" alt="Desligar com segurança"><br><sub><b>SAFE SHUTDOWN</b> direto no carrossel</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/06-setup.jpg" alt="Scripts do Setup"><br><sub>Setup com <b>Auto Games Setup</b> e <b>GPIO Controls</b></sub></td>
+<td><img src="docs/screenshots/07-menu.jpg" alt="Menu principal"><br><sub>Menu em <b>português do Brasil</b></sub></td>
+</tr>
+</table>
+
+<sub>Capturas do EmulationStation desta imagem (mesmo tema, tradução e configuração) rodando num PC a 1280×720, com jogos de exemplo sem capas.</sub>
+
+</div>
 
 <img src="docs/divider.svg" width="100%" height="8">
 
